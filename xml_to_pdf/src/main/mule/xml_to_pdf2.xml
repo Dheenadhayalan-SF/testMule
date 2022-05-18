@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:sharepoint="http://www.mulesoft.org/schema/mule/sharepoint"
+	xmlns:xml-module="http://www.mulesoft.org/schema/mule/xml-module"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:ftp="http://www.mulesoft.org/schema/mule/ftp" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/current/mule-ftp.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/xml-module http://www.mulesoft.org/schema/mule/xml-module/current/mule-xml-module.xsd
+http://www.mulesoft.org/schema/mule/sharepoint http://www.mulesoft.org/schema/mule/sharepoint/current/mule-sharepoint.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="b873348e-d0f6-4126-949e-e8e9a016b12e" >
+		<file:connection workingDir="C:\Users\Kumaran R\Desktop\Projects\p2-Mule_Bucket" />
+	</file:config>
+	<sharepoint:sharepoint-online-config name="Sharepoint_Sharepoint_online" doc:name="Sharepoint Sharepoint online" doc:id="a35a9b3f-c92a-4eb2-9ace-010a1d17066e" >
+		<sharepoint:online-connection onlineUsername="kumaran.18it@sonatech.ac.in" onlinePassword="kum0075." siteUrl="https://sonatechac.sharepoint.com/" />
+	</sharepoint:sharepoint-online-config>
+	<sftp:config name="SFTP_Config" doc:name="SFTP Config" doc:id="7ea1c18d-63b7-4d8b-acd2-734e0c19077d" >
+		<sftp:connection host="10.35.23.61" port="2222" username="tester" password="password" />
+	</sftp:config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="57da9df3-427c-41f0-98c0-3607bee05960" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<file:config name="File_Config1" doc:name="File Config" doc:id="39579645-b1be-4f2d-bd0f-8359fde6e21c" >
+		<file:connection workingDir="/Users/dheenadhayalansaravanan/Downloads/mule1" />
+	</file:config>
+	<flow name="xml_to_pdfFlow2" doc:id="d35b984b-39a8-495b-afd3-cfea0bac70bf" >
+		<http:listener doc:name="Listener" doc:id="381c140d-b58a-480a-859a-a8810f6c3b8b" config-ref="HTTP_Listener_config" path="/file"/>
+		<file:read doc:name="Read" doc:id="934ad43f-ed6a-4d67-ae4c-af790eb0b290" path="/Users/dheenadhayalansaravanan/Downloads/mule1/IMV_sample_Invoice_FOSS_ERP.xml"/>
+		<xml-module:xpath-extract doc:name="Copy_of_Xpath extract" doc:id="1f6c0e7d-7df8-4b62-a214-d3ffb31e8690" xpath="/sampleIMV/AttachmentBinaryObject/@filename" target="filename" targetValue="#[payload[0]]"/>
+		<xml-module:xpath-extract doc:name="Xpath extract" doc:id="f06862c4-1af0-48b8-a499-edaccf2f4f27" xpath="/sampleIMV/AttachmentBinaryObject/text()">
+		</xml-module:xpath-extract>
+		<set-payload value="#[payload[0]]" doc:name="Set Payload" doc:id="8243d6e4-52f0-4766-bb67-6bc29d9c2fb6" />
+		<ee:transform doc:name="Transform Message" doc:id="dec814f0-e403-4000-90eb-9543f97e4c76">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output multipart/form-data
+---
+{
+    parts:{
+        base64Content:{
+            headers:{
+                "Content-Type":"application/pdf"
+            },
+            content: fromBase64(payload)
+            },
+        }
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="9e53ec7f-5327-4f0c-9385-45add9ddf8aa" mimeType="application/pdf" />
+		<logger level="INFO" doc:name="Logger" doc:id="b5caafe5-8be9-44e4-852d-aa10b0cf97fa" message='#["/Shared Documents/" ++ vars.filename as String]'/>
+		<sharepoint:file-add doc:name="File add" doc:id="4d9c7b31-fff5-4411-9dd4-60fdefa021e0" config-ref="Sharepoint_Sharepoint_online" fileServerRelativeUrl='#["/Shared Documents/" ++ vars.filename]' overwrite="true">
+			<sharepoint:file-content-stream ><![CDATA[#[payload]]]></sharepoint:file-content-stream>
+		</sharepoint:file-add>
+		<logger level="INFO" doc:name="Logger" doc:id="04dd0892-1e3c-42ed-a32c-cce2d3f1d8b7" message="#[payload.linkingUrl]"/>
+	</flow>
+</mule>
