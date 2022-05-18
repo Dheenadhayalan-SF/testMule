@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="SourceXML" format="xml">
+      <types:example format="xml" element="sampleIMV" location="examples/IMV_sample_Invoice_FOSS_ERP.xml"/>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#bb5446fa-7021-4399-8797-de01463c38d9">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="SourceXML"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

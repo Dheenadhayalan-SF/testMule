@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="df9d368e-ce9e-436c-8ddf-b0eab320282b" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="testFlow" doc:id="749c7b2e-638d-42d6-8330-a2b02fe8c4da" >
+		<file:listener doc:name="On New or Updated File" doc:id="7bee6e6c-3625-41a3-ad6d-5b2d23c469d2" directory="/Users/dheenadhayalansaravanan/Downloads/test" moveToDirectory="/Users/dheenadhayalansaravanan/Downloads/test" renameTo='#["test" ++ ".bak"]' outputMimeType="text/xml">
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</file:listener>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="bd3028a9-f6b1-4f5a-a3ec-10d1c9e1792a" />
+	</flow>
+</mule>
